@@ -1,0 +1,217 @@
+<template name="detailsMenu">
+    <div class="col-sm-3 col-md-2 sidebar">
+        <ul class="nav nav-sidebar">
+            <li class="active"><a href="{{pathFor 'details'}}">Overview</a></li>
+            {{#if description}}<li><a href="{{pathFor 'details/description'}}">Description</a></li>{{/if}}
+            {{#if players}}<li><a href="{{pathFor 'details/players'}}">Online Players</a></li>{{/if}}
+        </ul>
+        <ul class="nav nav-sidebar">
+            <li><a href="">Nav item</a></li>
+            <li><a href="">Nav item again</a></li>
+            <li><a href="">One more nav</a></li>
+            <li><a href="">Another nav item</a></li>
+            <li><a href="">More navigation</a></li>
+        </ul>
+        <ul class="nav nav-sidebar">
+            <li><a href="">Nav item again</a></li>
+            <li><a href="">One more nav</a></li>
+            <li><a href="">Another nav item</a></li>
+        </ul>
+    </div>
+</template>
+<template name="details">
+    <div class="row">
+        {{> detailsMenu}}
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+
+            <div class="row">
+                <div class="col-md-9">
+                    <h1 class="page-header">{{status.serverinfo.servername}}
+                        {{#unless status.online}}<small>Showing last known information</small>{{/unless}}
+                        {{#if status.ddos_protected}}<span class="label label-primary glyphicon glyphicon-flash"> DDoS-protected</span>{{/if}}
+                        {{#if status.spigu_hosting}}<a href="http://otland.net/threads/ddg-ots-hosting-service.141037/"><span class="label label-primary glyphicon glyphicon-tower"> Spigu Hosting</span></a>{{/if}}
+                    </h1>
+                </div>
+                <div class="col-md-3">
+                    <a href="{{pathFor 'list'}}" class="btn btn-default btn-lg">
+                        <span class="glyphicon glyphicon-arrow-left"></span> Back to list
+                    </a>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-9">
+                    <blockquote>
+                        <p>{{status.motd}}</p>
+                        <footer>Message of the Day</footer>
+                    </blockquote>
+                </div>
+                <div class="col-md-3">
+                    <div class="well">
+                        {{#unless description}}
+                        <a href="{{pathFor 'details/description'}}" id="create-description" class="btn btn-default">
+                            <span class="glyphicon glyphicon-pencil"></span> Create Description
+                        </a>
+                        {{/unless}}
+                        <button type="button" data-action="refresh" data-id="{{_id}}" class="btn btn-success">
+                            <span class="glyphicon glyphicon-refresh"></span> Refresh
+                        </button>
+                        <button type="button" data-action="remove" data-id="{{_id}}" class="btn btn-danger">
+                            <span class="glyphicon glyphicon-remove"></span> Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">Connection details</div>
+                        <div class="panel-body">
+                            <table class="table condensed">
+                                <tr><td>Host</td><td>{{host}}</td></tr>
+                                <tr><td>Port</td><td>{{port}}</td></tr>
+                                <tr><td>Client</td><td>{{status.serverinfo.client}}</td></tr>
+                                <tr><td>IP Address</td><td>{{status.ip}}</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">Players</div>
+                        <div class="panel-body text-center">
+                            <small>status from {{moment_fromNow statusAt}}</small><br/>
+                            <strong>{{status.players.online}}</strong> players online<br/>
+                            Record is <strong>{{status.players.peak}}</strong>
+                            {{#unless status.online}}<h2><span class="label label-danger">Server is OFFLINE</span></h2>{{/unless}}
+
+                            <div>
+                                <svg id="players-chart"></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">Server information</div>
+                        <div class="panel-body text-center">
+                            {{status.serverinfo.server}} {{status.serverinfo.version}}<br/>
+                            currently runnning for {{moment_duration status.serverinfo.uptime}}<br/>
+                            around for {{moment_fromNow createdAt true}} <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="This is how long this server has been on our list."></span><br/>
+                            <div data-toggle="tooltip" title="Ping from our server in USA. If you are in Europe, higher is better. In America, lower is better." style="height: 100px; width: 100px; margin: auto;"><span id="ping-gauge" class="gauge-container"></span></div>
+                            hosted {{#if status.ip_whois}}by {{status.ip_whois.isp}} in {{#if status.ip_whois.city}}{{status.ip_whois.city}}, {{/if}}<a class="flag-webicon {{toFlag status.ip_whois.country}} xsmall" title="{{status.ip_whois.country}}">{{status.ip_whois.country}}</a> {{status.ip_whois.country}}{{/if}}<br/>
+                            with uptime of {{numeral status.uptime '0.00'}}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">Brought to you by</div>
+                        <div class="panel-body text-center">
+                            <h3>{{#if status.owner.name}}{{status.owner.name}}{{else}}<i>(unknown)</i>{{/if}}</h3>
+                            <a class="flag-webicon {{toFlag status.serverinfo.location}} large" title="{{status.serverinfo.location}}">{{status.serverinfo.location}}</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">Game & Map</div>
+                        <div class="panel-body text-center">
+                            {{#if status.rates}}
+                                <table class="table text-left">
+                                    <tr><td>Experience rate</td><td>{{status.rates.experience}}x</td></tr>
+                                    <tr><td>Magic rate</td><td>{{status.rates.magic}}x</td></tr>
+                                    <tr><td>Skill rate</td><td>{{status.rates.skill}}x</td></tr>
+                                    <tr><td>Loot rate</td><td>{{status.rates.loot}}x</td></tr>
+                                    <tr><td>Spawn rate</td><td>{{status.rates.spawn}}x</td></tr>
+                                </table>
+                            {{/if}}
+                            {{#if status.map.name}}<strong>{{status.map.name}}</strong> {{/if}}{{#if status.map.author}}by {{status.map.author}}{{/if}}<br/>
+                            {{#if status.map.width}}Size is {{status.map.width}} x {{status.map.height}}<br/>{{/if}}
+                            {{#if status.monsters.total}}{{status.monsters.total}} monsters<br/>{{/if}}
+                            {{#if status.npcs.total}}{{status.npcs.total}} NPCs<br/>{{/if}}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">Website</div>
+                        <div class="panel-body text-center">
+                            Website: <a href="{{status.serverinfo.url}}" target="_blank">{{status.serverinfo.url}}</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">Share this server!</div>
+                        <div class="panel-body text-center">
+                            <a id="fb-link" href=""><img src="{{absoluteUrl 'img/facebook_alt.svg'}}" alt="Facebook" /></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<template name="detailsDescription">
+    <div class="row">
+        {{> detailsMenu}}
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+            <div class="row">
+                <div class="col-md-9">
+                    <div id="description-editor" class="wmd-panel" style="display: none;">
+                        <div id="wmd-button-bar"></div>
+                        <textarea class="wmd-input" id="wmd-input">{{description}}</textarea>
+                    </div>
+                    {{#if description}}
+                    <p class="lead">{{pagedown description}}</p>
+                    {{else}}
+                    There is no description available for this server yet.
+                    {{/if}}
+                </div>
+                <div class="col-md-3">
+                    <div class="well">
+                        <button type="button" id="edit-description" class="btn btn-default">
+                            <span class="glyphicon glyphicon-pencil"></span> Description
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<template name="detailsPlayers">
+    <div class="row">
+        {{> detailsMenu}}
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+            <div class="row">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Level</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {{#each players}}
+                        <tr>
+                            <td>{{name}}</td>
+                            <td>{{level}}</td>
+                        </tr>
+                        {{else}}
+                        <p class="text-center">No players online.</p>
+                        {{/each}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
